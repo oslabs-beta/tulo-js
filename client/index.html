@@ -1,16 +1,16 @@
 <html>
   <head>
     <title>Hey I'm a Sample Client Using Service Workers</title>
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <h1>Hello There Abhi</h1>
-    <img src='/bluewill.png' alt='blue will sentence'/>
+    <img src="/bluewill.png" alt="blue will sentance" />
     <script>
-      if(navigator.serviceWorker) {
+      if (navigator.serviceWorker) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/service-worker.js');
-        })
+        });
       }
     </script>
   </body>
