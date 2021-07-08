@@ -1,4 +1,4 @@
-const version = 1.0;
+const version = 1.4;
 const imageCacheName = 'imageCache' + version;
 const pageCacheName = 'pageCache' + version;
 const staticCacheName = 'staticCache' + version;
@@ -9,10 +9,16 @@ const imageUrls = ['/bluewill.png'];
 const pageUrls = ['/', '/index.html', '/offline.html'];
 const staticUrls = ['/styles.css'];
 
-const sendMetrics = metrics => {
-  //sends to server
-
-}
+const sendMetrics = (metrics) => {
+  // POST metrics to server
+  fetch('http://localhost:3000/api/metrics', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(metrics),
+  });
+};
 
 const setUpCache = async () => {
   try {
@@ -22,7 +28,7 @@ const setUpCache = async () => {
     imageCache.addAll(imageUrls);
     const pageCache = await caches.open(pageCacheName);
     return pageCache.addAll(pageUrls);
-  } catch (err) { 
+  } catch (err) {
     console.error('Error opening cache');
   }
 };
@@ -51,45 +57,44 @@ self.addEventListener('fetch', (e) => {
     //apply network only
     e.respondWith(
       fetch(request)
-      .then(res => {
-        sendMetrics({
-          strategy: 'Network with Cache Fallback',
-          endpoint: request.url,
-          action: 'Fetched from Network',
-          timestamp: Date.now(),
-        });
-        return res;
-      })
-      .catch((err) => {
-        //if network fails, fall back on cache
-        sendMetrics({
-          strategy: 'Network with Cache Fallback',
-          endpoint: request.url,
-          action: 'Failed in Network',
-          timestamp: Date.now(),
-        });
-        return caches.match('/index.html')
-        .then(res => {
-          if(res){
-            sendMetrics({
-              strategy: 'Network with Cache Fallback',
-              endpoint: request.url,
-              action: 'Fetched from Cache',
-              timestamp: Date.now(),
-            });
-            return res;
-          }
+        .then((res) => {
+          sendMetrics({
+            strategy: 'Network with Cache Fallback',
+            resource: request.url,
+            action: 'Fetched from Network',
+            timestamp: Date.now(),
+          });
+          return res;
         })
-      })
+        .catch((err) => {
+          //if network fails, fall back on cache
+          sendMetrics({
+            strategy: 'Network with Cache Fallback',
+            resource: request.url,
+            action: 'Failed in Network',
+            timestamp: Date.now(),
+          });
+          return caches.match('/index.html').then((res) => {
+            if (res) {
+              sendMetrics({
+                strategy: 'Network with Cache Fallback',
+                resource: request.url,
+                action: 'Fetched from Cache',
+                timestamp: Date.now(),
+              });
+              return res;
+            }
+          });
+        })
     );
   } else if (request.headers.get('Accept').includes('image')) {
     //cache first strategy
     e.respondWith(
       caches.match(request).then((res) => {
-        if (res){
+        if (res) {
           sendMetrics({
             strategy: 'Cache First',
-            endpoint: request.url,
+            resource: request.url,
             action: 'Fetched from Cache',
             timestamp: Date.now(),
           });
@@ -97,7 +102,7 @@ self.addEventListener('fetch', (e) => {
         }
         sendMetrics({
           strategy: 'Cache First',
-          endpoint: request.url,
+          resource: request.url,
           action: 'Failed in Cache',
           timestamp: Date.now(),
         });
@@ -105,7 +110,7 @@ self.addEventListener('fetch', (e) => {
           .then((res) => {
             sendMetrics({
               strategy: 'Cache First',
-              endpoint: request.url,
+              resource: request.url,
               action: 'Fetched from Network',
               timestamp: Date.now(),
             });
@@ -113,7 +118,7 @@ self.addEventListener('fetch', (e) => {
             caches.open(imageCacheName).then((cache) => {
               sendMetrics({
                 strategy: 'Cache First',
-                endpoint: request.url,
+                resource: request.url,
                 action: 'Added to Cache',
                 timestamp: Date.now(),
               });
@@ -127,10 +132,10 @@ self.addEventListener('fetch', (e) => {
     //cache first response
     e.respondWith(
       caches.match(request).then((res) => {
-        if (res){
+        if (res) {
           sendMetrics({
             strategy: 'Cache First',
-            endpoint: request.url,
+            resource: request.url,
             action: 'Fetched from Cache',
             timestamp: Date.now(),
           });
@@ -138,7 +143,7 @@ self.addEventListener('fetch', (e) => {
         }
         sendMetrics({
           strategy: 'Cache First',
-          endpoint: request.url,
+          resource: request.url,
           action: 'Failed in Cache',
           timestamp: Date.now(),
         });
@@ -146,7 +151,7 @@ self.addEventListener('fetch', (e) => {
           .then((res) => {
             sendMetrics({
               strategy: 'Cache First',
-              endpoint: request.url,
+              resource: request.url,
               action: 'Fetched from Network',
               timestamp: Date.now(),
             });
@@ -154,7 +159,7 @@ self.addEventListener('fetch', (e) => {
             caches.open(staticCacheName).then((cache) => {
               sendMetrics({
                 strategy: 'Cache First',
-                endpoint: request.url,
+                resource: request.url,
                 action: 'Added to Cache',
                 timestamp: Date.now(),
               });
