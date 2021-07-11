@@ -5,12 +5,21 @@
   </head>
   <body>
     <h1>Hello There Abhi</h1>
-    <img src="/bluewill.png" alt="blue will sentence" />
-    <script>
+    <img src="/bluewill.png" alt="blue will sentance" />
+    <script type="module">
       if (navigator.serviceWorker) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker.register("/service-worker.js");
-        });
+        await navigator.serviceWorker
+          .register('/sw.js', {
+            type: 'module',
+          })
+          .then((registration) =>
+            console.log(
+              `Service worker registered in scope: ${registration.scope}`
+            )
+          )
+          .catch((e) =>
+            console.log(`Service worker registration failed: ${e}`)
+          );
       }
     </script>
   </body>
