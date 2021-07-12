@@ -9,8 +9,9 @@
     <script type="module">
       if (navigator.serviceWorker) {
         await navigator.serviceWorker
-          .register('/sw.js', {
+          .register('service-worker.js', {
             type: 'module',
+            scope: '/'
           })
           .then((registration) =>
             console.log(

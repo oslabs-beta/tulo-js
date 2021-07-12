@@ -4,7 +4,7 @@ const PORT = 5500;
 
 const app = express();
 app.use(express.json());
-app.use(express.static(path.join(__dirname, './static')));
+app.use(express.static(path.join(__dirname, 'static')));
 
 app.get('/', (req, res) => {
   res.status(200).sendFile(path.join(__dirname, 'index.html'));
@@ -22,8 +22,8 @@ app.get('/service-worker.js', (req, res) => {
   res.status(200).sendFile(path.join(__dirname, 'service-worker.js'));
 });
 
-app.get('/sw.js', (req, res) => {
-  res.status(200).sendFile(path.join(__dirname, 'sw.js'));
+app.get('/tulo.js', (req, res) => {
+  res.status(200).sendFile(path.join(__dirname, '../tulo.js'));
 });
 
 app.listen(PORT, () => console.log(`listening on ${PORT}`));
