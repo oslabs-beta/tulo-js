@@ -1,5 +1,5 @@
 import { cacheGenerator } from '/tulo.js';
-const version = 1.0;
+const version = 2.0;
 
 const pageCache = {
   name: 'pageCache'+version,
@@ -22,4 +22,4 @@ const imageCache = {
   strategy: 'CacheFirst',
 };
 
-cacheGenerator([imageCache, staticCache, pageCache]);
+cacheGenerator([pageCache, imageCache, staticCache]);
