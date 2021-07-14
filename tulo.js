@@ -7,6 +7,7 @@ export const cacheGenerator = (cacheSpecs) => {
     metrics.connection = navigator.onLine
       ? navigator.connection.effectiveType
       : 'offline';
+    metrics.device = navigator.userAgent;
     metricsCache.put(
       `/${metrics.url}_${metrics.timestamp}`,
       new Response(JSON.stringify(metrics))
