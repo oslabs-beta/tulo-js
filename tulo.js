@@ -1,20 +1,27 @@
 const METRICS_BATCH_SIZE = 30;
 export const cacheGenerator = (cacheSpecs) => {
   let expirations = {};
-  
-  let numMetrics = 0;
+
   const sendMetrics = async (metrics) => {
     const metricsCache = await caches.open('metrics');
-    if (navigator.onLine && numMetrics >= METRICS_BATCH_SIZE) {
+    metrics.connection = navigator.onLine
+      ? navigator.connection.effectiveType
+      : 'offline';
+    metricsCache.put(
+      `/${metrics.url}_${metrics.timestamp}`,
+      new Response(JSON.stringify(metrics))
+    );
+
+    const cacheSize = (await metricsCache.keys()).length;
+    if (navigator.onLine && cacheSize >= METRICS_BATCH_SIZE) {
       //flush queue if online
-      console.log('Sending to Server and Flushing Metrics Queue');
       const metricsQueue = [];
-      for(const request of await metricsCache.keys()){
+      for (const request of await metricsCache.keys()) {
         const response = await metricsCache.match(request);
         metricsQueue.push(await response.json());
         await metricsCache.delete(request);
       }
-      console.log(metrics.url, metricsQueue);
+      console.log('Flushed Metrics Queue', metricsQueue);
       //sends to server
       // fetch('http://localhost:3000/api/metrics', {
       //   method: 'POST',
@@ -23,9 +30,7 @@ export const cacheGenerator = (cacheSpecs) => {
       //   },
       //   body: JSON.stringify(metrics),
       // });
-      numMetrics = 0;
-    } else {
-      metricsCache.put(`/${metrics.url}_${metrics.timestamp}`, new Response(JSON.stringify(metrics)));
+      console.log('Sent Metrics to Server');
     }
   };
 
@@ -86,11 +91,15 @@ export const cacheGenerator = (cacheSpecs) => {
     if (expirations[name] && Date.now() > expirations[name]) {
       //cache expired
       expirations[name] = spec.expiration + Date.now();
-      try{
-        const responseFromNetwork = await grabFromNetwork(e, spec, 'Cache Expired');
+      try {
+        const responseFromNetwork = await grabFromNetwork(
+          e,
+          spec,
+          'Cache Expired'
+        );
         await addToCache(request, response, name);
         return responseFromNetwork;
-      } catch(err){
+      } catch (err) {
         return noMatch();
       }
     }
@@ -106,7 +115,7 @@ export const cacheGenerator = (cacheSpecs) => {
         message: (comment ? comment : '') + ':Found in Cache',
         size: response.headers.get('content-length'),
         loadtime: end - start,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
       return response;
     }
@@ -124,7 +133,7 @@ export const cacheGenerator = (cacheSpecs) => {
       message: (comment ? comment : '') + ':Found in Network',
       size: response.headers.get('content-length'),
       loadtime: end - start,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     return response;
@@ -154,7 +163,10 @@ export const cacheGenerator = (cacheSpecs) => {
 
   const cacheFirst = async (e, spec) => {
     try {
-      return (await grabFromCache(e, spec)) ?? (await grabFromNetwork(e, spec, 'Not Found in Cache'));
+      return (
+        (await grabFromCache(e, spec)) ??
+        (await grabFromNetwork(e, spec, 'Not Found in Cache'))
+      );
     } catch (err) {
       return noMatch();
     }
@@ -165,7 +177,9 @@ export const cacheGenerator = (cacheSpecs) => {
       const response = await grabFromNetwork(e, spec);
       return response;
     } catch (err) {
-      return (await grabFromCache(e, spec, 'Not Found in Network')) ?? noMatch();
+      return (
+        (await grabFromCache(e, spec, 'Not Found in Network')) ?? noMatch()
+      );
     }
   };
 
