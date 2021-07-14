@@ -1,5 +1,5 @@
 import { cacheGenerator } from '/tulo.js';
-const version = 2.0;
+const version = 3.0;
 
 const pageCache = {
   name: 'pageCache'+version,

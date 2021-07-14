@@ -76,6 +76,14 @@ export const cacheGenerator = (cacheSpecs) => {
 
     if (expirations[name] && Date.now() > expirations[name]) {
       //cache expired
+      expirations[name] = spec.expiration + Date.now();
+      try{
+        const responseFromNetwork = await grabFromNetwork(e, spec, 'Cache Expired');
+        await addToCache(request, response, name);
+        return responseFromNetwork;
+      } catch(err){
+        return noMatch();
+      }
     }
 
     const start = performance.now();
