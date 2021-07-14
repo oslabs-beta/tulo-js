@@ -1,16 +1,38 @@
-const METRICS_BATCH_SIZE = 10;
+const METRICS_BATCH_SIZE = 30;
 export const cacheGenerator = (cacheSpecs) => {
-  let metricsQueue = [];
-  const sendMetrics = (metrics) => {
-    console.log(metrics?.message);
-    if (navigator.onLine && metricsQueue.length >= METRICS_BATCH_SIZE) {
-      //sends to server
+  let expirations = {};
+
+  const sendMetrics = async (metrics) => {
+    const metricsCache = await caches.open('metrics');
+    metrics.connection = navigator.onLine
+      ? navigator.connection.effectiveType
+      : 'offline';
+    metrics.device = navigator.userAgent;
+    console.log(metrics);
+    metricsCache.put(
+      `/${metrics.url}_${metrics.timestamp}`,
+      new Response(JSON.stringify(metrics))
+    );
+
+    const cacheSize = (await metricsCache.keys()).length;
+    if (navigator.onLine && cacheSize >= METRICS_BATCH_SIZE) {
       //flush queue if online
-      console.log('Sending to Server and Flushing Metrics Queue');
-      metricsQueue = [];
-    } else {
-      metricsQueue.push(metrics);
-      console.log('Adding to Metrics Queue. Current Queue:', metricsQueue);
+      const metricsQueue = [];
+      for (const request of await metricsCache.keys()) {
+        const response = await metricsCache.match(request);
+        metricsQueue.push(await response.json());
+        await metricsCache.delete(request);
+      }
+      console.log('Flushed Metrics Queue', metricsQueue);
+      //sends to server
+      // fetch('http://localhost:3000/api/metrics', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(metrics),
+      // });
+      console.log('Sent Metrics to Server');
     }
   };
 
@@ -18,6 +40,8 @@ export const cacheGenerator = (cacheSpecs) => {
     try {
       return cacheSpecs.forEach(async (spec) => {
         const cache = await caches.open(spec.name);
+        if (spec.expiration)
+          expirations[spec.name] = spec.expiration + Date.now();
         return cache.addAll(spec.urls);
       });
     } catch (err) {
@@ -62,67 +86,127 @@ export const cacheGenerator = (cacheSpecs) => {
     }
   };
 
-  const cacheFirst = async (e, cacheName) => {
-    try {
-      const { request } = e;
-      const cache = await caches.open(cacheName);
-      let response = await cache.match(request);
-      if (response) {
-        sendMetrics({ message: 'Found in Cache' });
-        return response;
-      }
+  const grabFromCache = async (e, spec, comment) => {
+    const { request } = e;
+    const { name } = spec;
 
-      sendMetrics({ message: 'Not Found in Cache' });
-      response = await fetch(request);
-      if (response) {
-        sendMetrics({ message: 'Found in Network' });
-        let copy = response.clone();
-        e.waitUntil(
-          cache.put(request, copy)
-        )
-        sendMetrics({ message: 'Added to Cache' });
-        return response;
+    if (expirations[name] && Date.now() > expirations[name]) {
+      //cache expired
+      expirations[name] = spec.expiration + Date.now();
+      try {
+        const responseFromNetwork = await grabFromNetwork(
+          e,
+          spec,
+          'Cache Expired'
+        );
+        e.waitUntil(addToCache(request, responseFromNetwork.clone(), name));
+        return responseFromNetwork;
+      } catch (err) {
+        return noMatch();
       }
-      
-      sendMetrics({ message: 'Not Found in Network' });
-      return new Response();
-    } catch (err) {
-      console.error('Somewthing went wrong', err);
+    }
+
+    const start = performance.now();
+    const cache = await caches.open(name);
+    const response = await cache.match(request);
+    const end = performance.now();
+    if (response) {
+      sendMetrics({
+        strategy: spec.strategy,
+        url: request.url,
+        message: (comment ? comment : '') + ':Found in Cache',
+        size: response.headers.get('content-length'),
+        loadtime: end - start,
+        timestamp: Date.now(),
+      });
+      return response;
     }
   };
 
-  const networkFirst = async (e, cacheName) => {
+  const grabFromNetwork = async (e, spec, comment) => {
+    const { request } = e;
+    const start = performance.now();
+    const response = await fetch(request);
+    const end = performance.now();
+
+    sendMetrics({
+      strategy: spec ? spec.strategy : 'NoStrategy',
+      url: request.url,
+      message: (comment ? comment : '') + ':Found in Network',
+      size: response.headers.get('content-length'),
+      loadtime: end - start,
+      timestamp: Date.now(),
+    });
+
+    return response;
+  };
+
+  const addToCache = async (request, response, cacheName) => {
+    const cache = await caches.open(cacheName);
+    return cache.put(request, response);
+  };
+
+  const noMatch = () => {
+    const response = new Response('No Match Found');
+    return response;
+  };
+
+  const networkOnly = async (e, spec) => {
     try {
-      const { request } = e;
-      const cache = await caches.open(cacheName);
-      let response = await fetch(request);
-      if (response) {
-        sendMetrics({ message: 'Found in Network' });
-        let copy = response.clone();
-        e.waitUntil(
-          cache.put(request, copy)
-        )
-        sendMetrics({ message: 'Added to Cache' });
-        return response;
-      }
-      
-      sendMetrics({ message: 'Not Found in Network' });
-      return new Response();
+      return await grabFromNetwork(e, spec);
     } catch (err) {
-      console.error('Somewthing went wrong', err);
+      return noMatch();
+    }
+  };
+
+  const cacheOnly = async (e, spec) => {
+    return (await grabFromCache(e, spec)) ?? noMatch();
+  };
+
+  const cacheFirst = async (e, spec) => {
+    try {
+      return (
+        (await grabFromCache(e, spec)) ??
+        (await grabFromNetwork(e, spec, 'Not Found in Cache'))
+      );
+    } catch (err) {
+      return noMatch();
+    }
+  };
+
+  const networkFirst = async (e, spec) => {
+    try {
+      const response = await grabFromNetwork(e, spec);
+      e.waitUntil(addToCache(e.request, response.clone(), spec.name));
+      return response;
+    } catch (err) {
+      return (
+        (await grabFromCache(e, spec, 'Not Found in Network')) ?? noMatch()
+      );
     }
   };
 
   const runStrategy = async (e) => {
     const { request } = e;
     const spec = getSpec(request);
-    if (!spec) return await fetch(request);
+    if (!spec) {
+      //no cache found for resource
+      return await networkOnly(e);
+    }
+
     const { strategy } = spec;
-    switch(strategy){
-      case 'CacheFirst': return cacheFirst(e, spec.name)
-      case 'NetworkFirst': return networkFirst(e, spec.name)
-      default: return new Response()
-    };
+    switch (strategy) {
+      case 'CacheFirst':
+        return await cacheFirst(e, spec);
+      case 'NetworkFirst':
+        return await networkFirst(e, spec);
+      case 'CacheOnly':
+        return await cacheOnly(e, spec);
+      case 'NetworkOnly':
+        return await networkOnly(e, spec);
+      default:
+        return new Response(`${strategy} for ${request.url} does not exist`); //specified strategy was not found
+    }
   };
 
   self.addEventListener('fetch', (e) => {

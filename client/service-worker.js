@@ -1,5 +1,5 @@
 import { cacheGenerator } from '/tulo.js';
-const version = 1.0;
+const version = 3.0;
 
 const pageCache = {
   name: 'pageCache'+version,
@@ -12,7 +12,8 @@ const staticCache = {
   name: 'staticCache'+version,
   types: ['text/css'],
   urls: ['/styles.css'],
-  strategy: 'CacheFirst'
+  strategy: 'CacheFirst',
+  expiration: 60*60*1000//in miliseconds: 60*1000 = 1 minute, 20*60*1000 = 20 minutes
 }
 
 const imageCache = {
@@ -22,4 +23,4 @@ const imageCache = {
   strategy: 'CacheFirst',
 };
 
-cacheGenerator([imageCache, staticCache, pageCache]);
+cacheGenerator([pageCache, imageCache, staticCache]);//include your page/markup caches first
