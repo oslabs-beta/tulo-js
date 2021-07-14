@@ -1,6 +1,7 @@
 const METRICS_BATCH_SIZE = 10;
 export const cacheGenerator = (cacheSpecs) => {
   let metricsQueue = [];
+  let expirations = {};
   const sendMetrics = (metrics) => {
     if (navigator.onLine && metricsQueue.length >= METRICS_BATCH_SIZE) {
       //sends to server
@@ -23,6 +24,8 @@ export const cacheGenerator = (cacheSpecs) => {
     try {
       return cacheSpecs.forEach(async (spec) => {
         const cache = await caches.open(spec.name);
+        if (spec.expiration)
+          expirations[spec.name] = spec.expiration + Date.now();
         return cache.addAll(spec.urls);
       });
     } catch (err) {
@@ -67,9 +70,14 @@ export const cacheGenerator = (cacheSpecs) => {
     }
   };
 
-  const grabFromCache = async (e, spec) => {
+  const grabFromCache = async (e, spec, comment) => {
     const { request } = e;
     const { name } = spec;
+
+    if (expirations[name] && Date.now() > expirations[name]) {
+      //cache expired
+    }
+
     const start = performance.now();
     const cache = await caches.open(name);
     const response = await cache.match(request);
@@ -78,7 +86,7 @@ export const cacheGenerator = (cacheSpecs) => {
       sendMetrics({
         strategy: spec.strategy,
         url: request.url,
-        message: 'Found in Cache',
+        message: (comment ? comment : '') + ':Found in Cache',
         size: response.headers.get('content-length'),
         time: end - start,
       });
@@ -86,7 +94,7 @@ export const cacheGenerator = (cacheSpecs) => {
     }
   };
 
-  const grabFromNetwork = async (e, spec) => {
+  const grabFromNetwork = async (e, spec, comment) => {
     const { request } = e;
     const start = performance.now();
     const response = await fetch(request);
@@ -95,7 +103,7 @@ export const cacheGenerator = (cacheSpecs) => {
     sendMetrics({
       strategy: spec ? spec.strategy : 'NoStrategy',
       url: request.url,
-      message: 'Found in Network',
+      message: (comment ? comment : '') + ':Found in Network',
       size: response.headers.get('content-length'),
       time: end - start,
     });
@@ -126,7 +134,11 @@ export const cacheGenerator = (cacheSpecs) => {
   };
 
   const cacheFirst = async (e, spec) => {
-    return (await grabFromCache(e, spec)) ?? (await networkOnly(e, spec));
+    try {
+      return (await grabFromCache(e, spec)) ?? (await grabFromNetwork(e, spec, 'Not Found in Cache'));
+    } catch (err) {
+      return noMatch();
+    }
   };
 
   const networkFirst = async (e, spec) => {
@@ -134,7 +146,7 @@ export const cacheGenerator = (cacheSpecs) => {
       const response = await grabFromNetwork(e, spec);
       return response;
     } catch (err) {
-      return await cacheOnly(e, spec);
+      return (await grabFromCache(e, spec, 'Not Found in Network')) ?? noMatch();
     }
   };
 

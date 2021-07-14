@@ -12,7 +12,8 @@ const staticCache = {
   name: 'staticCache'+version,
   types: ['text/css'],
   urls: ['/styles.css'],
-  strategy: 'CacheFirst'
+  strategy: 'CacheFirst',
+  expiration: 60*1000//in miliseconds
 }
 
 const imageCache = {
