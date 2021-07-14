@@ -1,12 +1,21 @@
 const METRICS_BATCH_SIZE = 10;
 export const cacheGenerator = (cacheSpecs) => {
-  let metricsQueue = [];
   let expirations = {};
-  const sendMetrics = (metrics) => {
-    if (navigator.onLine && metricsQueue.length >= METRICS_BATCH_SIZE) {
-      //sends to server
+  
+  let numMetrics = 0;
+  const sendMetrics = async (metrics) => {
+    const metricsCache = await caches.open('metrics');
+    if (navigator.onLine && numMetrics >= METRICS_BATCH_SIZE) {
       //flush queue if online
       console.log('Sending to Server and Flushing Metrics Queue');
+      const metricsQueue = [];
+      for(const request of await metricsCache.keys()){
+        const response = await metricsCache.match(request);
+        metricsQueue.push(await response.json());
+        await metricsCache.delete(request);
+      }
+      console.log(metrics.url, metricsQueue);
+      //sends to server
       // fetch('http://localhost:3000/api/metrics', {
       //   method: 'POST',
       //   headers: {
@@ -14,9 +23,9 @@ export const cacheGenerator = (cacheSpecs) => {
       //   },
       //   body: JSON.stringify(metrics),
       // });
-      metricsQueue = [];
+      numMetrics = 0;
     } else {
-      metricsQueue.push(metrics);
+      metricsCache.put(`/${++numMetrics}`, new Response(JSON.stringify(metrics)));
     }
   };
 
