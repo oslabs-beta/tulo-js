@@ -8,6 +8,7 @@ export const cacheGenerator = (cacheSpecs) => {
       ? navigator.connection.effectiveType
       : 'offline';
     metrics.device = navigator.userAgent;
+    console.log(metrics);
     metricsCache.put(
       `/${metrics.url}_${metrics.timestamp}`,
       new Response(JSON.stringify(metrics))
@@ -98,7 +99,7 @@ export const cacheGenerator = (cacheSpecs) => {
           spec,
           'Cache Expired'
         );
-        await addToCache(request, response, name);
+        e.waitUntil(addToCache(request, responseFromNetwork.clone(), name));
         return responseFromNetwork;
       } catch (err) {
         return noMatch();
@@ -176,6 +177,7 @@ export const cacheGenerator = (cacheSpecs) => {
   const networkFirst = async (e, spec) => {
     try {
       const response = await grabFromNetwork(e, spec);
+      e.waitUntil(addToCache(e.request, response.clone(), spec.name));
       return response;
     } catch (err) {
       return (
