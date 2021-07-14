@@ -1,4 +1,4 @@
-const METRICS_BATCH_SIZE = 10;
+const METRICS_BATCH_SIZE = 30;
 export const cacheGenerator = (cacheSpecs) => {
   let expirations = {};
   
@@ -25,7 +25,7 @@ export const cacheGenerator = (cacheSpecs) => {
       // });
       numMetrics = 0;
     } else {
-      metricsCache.put(`/${++numMetrics}`, new Response(JSON.stringify(metrics)));
+      metricsCache.put(`/${metrics.url}_${metrics.timestamp}`, new Response(JSON.stringify(metrics)));
     }
   };
 
@@ -105,7 +105,8 @@ export const cacheGenerator = (cacheSpecs) => {
         url: request.url,
         message: (comment ? comment : '') + ':Found in Cache',
         size: response.headers.get('content-length'),
-        time: end - start,
+        loadtime: end - start,
+        timestamp: Date.now()
       });
       return response;
     }
@@ -122,7 +123,8 @@ export const cacheGenerator = (cacheSpecs) => {
       url: request.url,
       message: (comment ? comment : '') + ':Found in Network',
       size: response.headers.get('content-length'),
-      time: end - start,
+      loadtime: end - start,
+      timestamp: Date.now()
     });
 
     return response;

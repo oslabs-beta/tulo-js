@@ -23,4 +23,4 @@ const imageCache = {
   strategy: 'CacheFirst',
 };
 
-cacheGenerator([pageCache, imageCache, staticCache]);
+cacheGenerator([pageCache, imageCache, staticCache]);//include your page/markup caches first
