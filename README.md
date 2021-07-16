@@ -30,7 +30,7 @@ Connect with us to let us know what you think - and raise any issues on Github i
   ```js
     const imageCacheSpec = {
       name: 'imageCache' + version,
-      types: ['image'],
+      types: ['image/png'],
       urls: ['/bluewill.png'],
       strategy: 'CacheFirst',
       expiration: 60*60*1000
@@ -40,8 +40,8 @@ Connect with us to let us know what you think - and raise any issues on Github i
   ```js
     const sampleCacheSpec = {
       name: 'sampleCache'+version, //give your cache a name and tag on the version number
-      types: [], //input all HTML MIME types e.g. text/html, text/css, image/gif, etc.
-      urls: [], //input all file paths to be cached that correspond to the types specific to this cacheSpec
+      types: [], //input HTML MIME types e.g. text/html, text/css, image/gif, etc.
+      urls: [], //input any reachable file paths to be cached that correspond to the types specific to this cacheSpec
       strategy: '', //currently supported strategies are: CacheFirst, NetworkFirst, NetworkOnly
       expiration: 60*60*1000 //in miliseconds: 60*1000 = 1 minute, 20*60*1000 = 20 minutes - this field is OPTIONAL - if omitted, these urls will be refreshed when       the service worker restarts
     }
@@ -69,7 +69,7 @@ Connect with us to let us know what you think - and raise any issues on Github i
 
 ### Test your Service Worker 
 
-12)
+12) Serve your application. Open up Google Chrome. Navigate to your website. Open up your Chrome Dev Tools by typing cmd+option+I. Navigate to the Application menu. Click on Service Worker.
 
 ### Test your Caches
 
@@ -78,4 +78,8 @@ Connect with us to let us know what you think - and raise any issues on Github i
 ### Sign Up on tulojs.com for monitoring and insights
 
 14)
+
+### Important Points
+
+- Service Workers can only work with HTTPS end points.
  
