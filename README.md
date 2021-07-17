@@ -71,10 +71,9 @@ Connect with us to let us know what you think - and raise any issues on Github i
 
 12) Serve your application. Open up Google Chrome. Navigate to your website. Open up your Chrome Dev Tools by typing cmd+option+I. Navigate to the Application menu. Click on Service Worker. You should see a new service worker installed and running (see screenshot).
 
-
 ### Test your Caches
 
-13) When you check your Dev Console in Chrome, you should see your Service Worker Registered, Installed, and Activated. When you navigate to Cache Storage in the Application menu, you should see the caches for which you created specifications with the end-points/resources cached versions of the end-points in them.
+13) When you check your Dev Console in Chrome, you should see your Service Worker Registered, Installed, and Activated. When you navigate to Cache Storage in the Application menu, you should see the caches for which you created specifications with the end-points/resources cached versions of the end-points in them (see screenshot).
 
 ### Sign Up on tulojs.com for monitoring and insights
 
