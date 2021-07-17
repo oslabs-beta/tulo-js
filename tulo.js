@@ -1,39 +1,56 @@
-const METRICS_BATCH_SIZE = 30;
 export const cacheGenerator = (cacheSpecs) => {
   let expirations = {};
+  const METRICS_BATCH_SIZE = 30;
+
+  //simple mutex
+  let isLocked = false;
+  const lock = () => (isLocked = true);
+  const unLock = () => (isLocked = false);
 
   const sendMetrics = async (metrics) => {
+    if (isLocked)
+      return setTimeout(async () => await sendMetrics(metrics), 1000);
+    lock();
+    console.log(metrics.url, 'has the lock');
     const metricsCache = await caches.open('metrics');
     metrics.connection = navigator.onLine
       ? navigator.connection.effectiveType
       : 'offline';
     metrics.device = navigator.userAgent;
-    console.log(metrics);
     metricsCache.put(
       `/${metrics.url}_${metrics.timestamp}`,
       new Response(JSON.stringify(metrics))
     );
-
     const cacheSize = (await metricsCache.keys()).length;
     if (navigator.onLine && cacheSize >= METRICS_BATCH_SIZE) {
-      //flush queue if online
       const metricsQueue = [];
-      for (const request of await metricsCache.keys()) {
-        const response = await metricsCache.match(request);
-        metricsQueue.push(await response.json());
-        await metricsCache.delete(request);
+      try {
+        for (const request of await metricsCache.keys()) {
+          const response = await metricsCache.match(request);
+          metricsQueue.push(await response.json());
+        }
+        //sends to server
+        // fetch('http://localhost:3000/api/metrics', {
+        //   method: 'POST',
+        //   headers: {
+        //     'Content-Type': 'application/json',
+        //   },
+        //   body: JSON.stringify(metrics),
+        // });
+        console.log('Sent Metrics to Server');
+      } catch (err) {
+        console.error(err);
+      } finally {
+        const cacheSize = (await metricsCache.keys()).length;
+        console.log(cacheSize, metricsQueue.length);
+        for (const request of await metricsCache.keys()) {
+          await metricsCache.delete(request);
+        }
       }
       console.log('Flushed Metrics Queue', metricsQueue);
-      //sends to server
-      // fetch('http://localhost:3000/api/metrics', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(metrics),
-      // });
-      console.log('Sent Metrics to Server');
     }
+    unLock();
+    console.log(metrics.url, 'released the lock');
   };
 
   const setUpCache = () => {

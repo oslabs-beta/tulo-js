@@ -1,14 +1,14 @@
-import { cacheGenerator } from '/tulo.js';
+import { cacheGenerator } from '/tulo';
 const version = 3.0;
 
-const pageCache = {
+const pageCacheSpec = {
   name: 'pageCache'+version,
   types: ['text/html'],
   urls: ['/', '/index.html'],
   strategy: 'NetworkFirst'
 }
 
-const staticCache = {
+const staticCacheSpec = {
   name: 'staticCache'+version,
   types: ['text/css'],
   urls: ['/styles.css'],
@@ -16,11 +16,11 @@ const staticCache = {
   expiration: 60*60*1000//in miliseconds: 60*1000 = 1 minute, 20*60*1000 = 20 minutes
 }
 
-const imageCache = {
+const imageCacheSpec = {
   name: 'imageCache' + version,
   types: ['image'],
   urls: ['/bluewill.png'],
   strategy: 'CacheFirst',
 };
 
-cacheGenerator([pageCache, imageCache, staticCache]);//include your page/markup caches first
+cacheGenerator([pageCacheSpec, imageCacheSpec, staticCacheSpec]);//include your page/markup caches first

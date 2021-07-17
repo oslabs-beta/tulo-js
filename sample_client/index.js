@@ -22,7 +22,7 @@ app.get('/service-worker.js', (req, res) => {
   res.status(200).sendFile(path.join(__dirname, 'service-worker.js'));
 });
 
-app.get('/tulo.js', (req, res) => {
+app.get('/tulo', (req, res) => {
   res.status(200).sendFile(path.join(__dirname, '../tulo.js'));
 });
 
