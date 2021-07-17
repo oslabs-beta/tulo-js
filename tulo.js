@@ -24,6 +24,7 @@ export const cacheGenerator = (cacheSpecs) => {
     const cacheSize = (await metricsCache.keys()).length;
     if (navigator.onLine && cacheSize >= METRICS_BATCH_SIZE) {
       const metricsQueue = [];
+      let sentToServer = false;
       try {
         for (const request of await metricsCache.keys()) {
           const response = await metricsCache.match(request);
@@ -37,14 +38,18 @@ export const cacheGenerator = (cacheSpecs) => {
         //   },
         //   body: JSON.stringify(metrics),
         // });
+        let sentToServer = true;
         console.log('Sent Metrics to Server');
       } catch (err) {
         console.error(err);
+        sentToServer = false;
       } finally {
         const cacheSize = (await metricsCache.keys()).length;
         console.log(cacheSize, metricsQueue.length);
-        for (const request of await metricsCache.keys()) {
-          await metricsCache.delete(request);
+        if (sentToServer) {
+          for (const request of await metricsCache.keys()) {
+            await metricsCache.delete(request);
+          }
         }
       }
       console.log('Flushed Metrics Queue', metricsQueue);
