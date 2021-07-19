@@ -11,7 +11,7 @@ export const cacheGenerator = (cacheSpecs) => {
     if (isLocked)
       return setTimeout(async () => await sendMetrics(metrics), 1000);
     lock();
-    console.log(metrics.url, 'has the lock');
+    // console.log(metrics.url, 'has the lock');
     const metricsCache = await caches.open('metrics');
     metrics.connection = navigator.onLine
       ? navigator.connection.effectiveType
@@ -31,31 +31,31 @@ export const cacheGenerator = (cacheSpecs) => {
           metricsQueue.push(await response.json());
         }
         //sends to server
-        // fetch('http://localhost:3000/api/metrics', {
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify(metrics),
-        // });
-        let sentToServer = true;
-        console.log('Sent Metrics to Server');
+        fetch('http://localhost:3000/api/metrics', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(metricsQueue),
+        });
+        sentToServer = true;
+        console.log('Sent Metrics to Server', sentToServer);
       } catch (err) {
-        console.error(err);
+        console.error('Sending to Server Failed', err);
         sentToServer = false;
       } finally {
         const cacheSize = (await metricsCache.keys()).length;
-        console.log(cacheSize, metricsQueue.length);
         if (sentToServer) {
+          console.log('Flushing Metrics Queue', sentToServer);
           for (const request of await metricsCache.keys()) {
             await metricsCache.delete(request);
           }
+          console.log('Flushed Metrics Queue', metricsQueue);
         }
       }
-      console.log('Flushed Metrics Queue', metricsQueue);
     }
     unLock();
-    console.log(metrics.url, 'released the lock');
+    // console.log(metrics.url, 'released the lock');
   };
 
   const setUpCache = () => {
