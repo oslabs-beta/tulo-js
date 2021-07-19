@@ -1,5 +1,5 @@
 import { cacheGenerator } from '/tulo';
-const version = 3.0;
+const version = 1.0;
 
 const pageCacheSpec = {
   name: 'pageCache'+version,
@@ -19,7 +19,7 @@ const staticCacheSpec = {
 const imageCacheSpec = {
   name: 'imageCache' + version,
   types: ['image'],
-  urls: ['/bluewill.png'],
+  urls: ['/catsnakes.png'],
   strategy: 'CacheFirst',
 };
 

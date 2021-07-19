@@ -31,7 +31,7 @@ export const cacheGenerator = (cacheSpecs) => {
           metricsQueue.push(await response.json());
         }
         //sends to server
-        fetch('http://localhost:3000/api/metrics', {
+        await fetch('http://localhost:3000/api/metrics', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -39,14 +39,13 @@ export const cacheGenerator = (cacheSpecs) => {
           body: JSON.stringify(metricsQueue),
         });
         sentToServer = true;
-        console.log('Sent Metrics to Server', sentToServer);
+        console.log('Sent Metrics to Server');
       } catch (err) {
         console.error('Sending to Server Failed', err);
         sentToServer = false;
       } finally {
         const cacheSize = (await metricsCache.keys()).length;
         if (sentToServer) {
-          console.log('Flushing Metrics Queue', sentToServer);
           for (const request of await metricsCache.keys()) {
             await metricsCache.delete(request);
           }
