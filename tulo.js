@@ -11,7 +11,6 @@ export const cacheGenerator = (cacheSpecs) => {
     if (isLocked)
       return setTimeout(async () => await sendMetrics(metrics), 1000);
     lock();
-    // console.log(metrics.url, 'has the lock');
     const metricsCache = await caches.open('metrics');
     metrics.connection = navigator.onLine
       ? navigator.connection.effectiveType
@@ -31,7 +30,7 @@ export const cacheGenerator = (cacheSpecs) => {
           metricsQueue.push(await response.json());
         }
         //sends to server
-        await fetch('http://localhost:3000/api/metrics', {
+        await fetch('https://tulojs.com/api/metrics', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -39,7 +38,6 @@ export const cacheGenerator = (cacheSpecs) => {
           body: JSON.stringify(metricsQueue),
         });
         sentToServer = true;
-        console.log('Sent Metrics to Server');
       } catch (err) {
         console.error('Sending to Server Failed', err);
         sentToServer = false;
@@ -49,12 +47,10 @@ export const cacheGenerator = (cacheSpecs) => {
           for (const request of await metricsCache.keys()) {
             await metricsCache.delete(request);
           }
-          console.log('Flushed Metrics Queue', metricsQueue);
         }
       }
     }
     unLock();
-    // console.log(metrics.url, 'released the lock');
   };
 
   const setUpCache = () => {
@@ -226,7 +222,8 @@ export const cacheGenerator = (cacheSpecs) => {
       case 'NetworkOnly':
         return await networkOnly(e, spec);
       default:
-        return new Response(`${strategy} for ${request.url} does not exist`); //specified strategy was not found
+        console.error(`${strategy} for ${request.url} does not exist - sending to network`)
+        return await networkOnly(e);
     }
   };
 
