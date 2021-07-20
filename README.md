@@ -91,7 +91,7 @@ Thanks for checking out our library! Please let us know of any feature requests 
     }
 ```
 
-### Check your service sorker and caches in DevTools
+### Check your service worker and caches in DevTools
 
 11) Serve your application. Open up Google Chrome and navigate to your website. Open up your Chrome DevTools by clicking inspect (or entering cmd+option+I on Mac, ctrl+shift+I on Windows). Navigate to the Application panel and click Service Worker on the sidebar. You should see a new service worker installed and activated.
 
