@@ -101,12 +101,9 @@ Thanks for checking out our library! Please let us know of any feature requests 
 
 13) Visit tulojs.com/dashboard to monitor your caching strategies in production. You'll be able to view the caching strategies you implemented on a per resource basis, including statistics on cache events and your users. For example, what percentage of the time is your site's logo image being fetched from the cache versus the network? What is the difference in average load time when it is fetched from the cache versus the network? What percentage of your users are accessing your `about` page when their connection is offline?
 
-### Notes
+## Notes & Resources
 
 - Service Workers only work with HTTPS (localhost is an exception)
-
-### Resources
-
 - [web.dev](https://web.dev/) has many fantastic articles on service workers, caching, and more – check out the [overview on workers](https://web.dev/workers-overview/) to get started
 - [Workbox] is a robust library for service worker implementation if you are interested in diving deeper on caching possibilities (it served as an inspiration for making tulo.js as a lightweight library with monitoring insights)
 - [serviceworke.rs](https://serviceworke.rs/) is a great website with a cookbook for service workers if you want to get your hands dirty building from scratch
