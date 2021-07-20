@@ -1,5 +1,5 @@
 # tulo.js
-Making service workers easy to use so that your app can be fast, reliable, and even offline.
+Making service workers easy to use so that your app can be fast and reliable, even offline.
 
 Welcome to **tulo.js** - a light-weight, importable service worker library that allows you to leverage one of the coolest new browser features to make your website more robust. The current version of tulo.js supports the following functionalities:
   - Set up configurable individualized caching strategies for different file types (markups, stylesheets, images, fonts, etc.) based on your business needs
