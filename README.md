@@ -21,7 +21,7 @@ Thanks for checking out our library! Please let us know of any feature requests 
 
 2) Run ```touch service-worker.js``` in your project's `public/` directory (or wherever you store static assets) to create the service worker file. You could call this file `sw.js` (or whatever you like) if you prefer a shorter name.
 
-3) If you are using Express.js to serve your front-end, create an endpoint to responsd to GET requests to `/tulo` that sends `node_modules/tulo-js/tulo.js` as a response. Otherwise, adjust your import statement in the next step to `node_modules/tulo-js/tulo.js` in the next step instead of `/tulo` (see below).
+3) If you are using Express.js to serve your front-end, create an endpoint to respond to GET requests to `/tulo` that sends `node_modules/tulo-js/tulo.js` as a response. Otherwise, adjust your import statement in the next step to `node_modules/tulo-js/tulo.js` in the next step instead of `/tulo` (see below).
 
 4) At the top of `service-worker.js`, import the tulo library:
   
@@ -35,7 +35,7 @@ Thanks for checking out our library! Please let us know of any feature requests 
 5) Add a version number to `service-worker.js`. Remember to update this version number whenever you make updates to this file. This will ensure that a new service worker is installed then activated and your caches are automatically refreshed when you update your caching strategy.
   
   ```js
-    const version = 1.0; // update version number everytime you update this file to effect changes
+    const version = 1.0; // update version number when you change this file to register changes
   ```
 
 6) Develop a caching strategy for each of your website's resources (i.e. pages, stylesheets, images, logos, fonts, icons, audio/video, etc.). For example, you might want your pages to be requested fresh from the network whenever possible, so your caching strategy would be `NetworkFirst`. A `NetworkFirst` strategy will retrieve the resource from the network and add it to the cache. If the network fails or the server is down on a subsequent request, the resource will be served from the cache as a fallback. That way, if your users go offline, they can still access your pages from the cache if it has been populated on previous requests. That is the magic of service workers! Here are the caching strategies currently supported by tulo.js:
@@ -99,7 +99,7 @@ Thanks for checking out our library! Please let us know of any feature requests 
 
 ### Sign in on tulojs.com for monitoring and insights
 
-13) Visit tulojs.com/dashboard to monitor your caching strategies in production. You'll be able to view the caching strategies you implemented on a per resource basis, including statistics on cache events and your users. For example, what percentage of the time is your site's logo image being fetched from the cache versus the network? What is the difference in average load time when it is fetched from the cache versus the network? What percentage of your users are accessing your `about` page when their connection is offline?
+13) Visit [tulojs.com/dashboard](https://www.tulojs.com/dashboard) to monitor your caching strategies in production. You'll be able to view the caching strategies you implemented on a per resource basis, including statistics on cache events and your users. For example, what percentage of the time is your site's logo image being fetched from the cache versus the network? What is the difference in average load time when it is fetched from the cache versus the network? What percentage of your users are accessing your `about` page when their connection is offline?
 
 ## Notes & Resources
 
