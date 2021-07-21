@@ -49,7 +49,7 @@ Thanks for checking out our library! Please let us know of any feature requests 
   ```js
     const imageCacheSpec = {
       name: 'imageCache' + version,
-      types: ['image/png'],
+      types: ['image'],
       urls: ['/logo.png', '/icon.png', 'banner.png'],
       strategy: 'CacheFirst',
       expiration: 60*60*1000
