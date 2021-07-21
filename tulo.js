@@ -38,7 +38,8 @@ export const cacheGenerator = (cacheSpecs) => {
           body: JSON.stringify(metricsQueue),
         });
         
-        if(res) sentToServer = true;
+        console.log('');//console logging a empty character to avoid a strange issue when fetch seems to hang forever
+        sentToServer = true;
       } catch (err) {
         console.error('Sending to Server Failed', err);
         sentToServer = false;
@@ -188,8 +189,11 @@ export const cacheGenerator = (cacheSpecs) => {
 
   const cacheFirst = async (e, spec) => {
     try {
-      const response =  (await grabFromCache(e, spec)) ?? (await grabFromNetwork(e, spec, 'Not Found in Cache'));
-      e.waitUntil(addToCache(e.request, response.clone(), spec.name));
+      let response =  await grabFromCache(e, spec);
+      if(!response){
+        response = await grabFromNetwork(e, spec, 'Not Found in Cache');
+        e.waitUntil(addToCache(e.request, response.clone(), spec.name));
+      }
       return response;
     } catch (err) {
       return noMatch();
