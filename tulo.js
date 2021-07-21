@@ -68,7 +68,6 @@ export const cacheGenerator = (cacheSpecs) => {
   };
 
   self.addEventListener('install', (e) => {
-    console.log('Service Worker Installing...');
     skipWaiting();
     e.waitUntil(setUpCache());
   });
@@ -89,7 +88,6 @@ export const cacheGenerator = (cacheSpecs) => {
   };
 
   self.addEventListener('activate', (e) => {
-    console.log('Service Worker Activated.');
     e.waitUntil(deleteOldCaches().then(() => clients.claim()));
   });
 
@@ -237,7 +235,6 @@ export const cacheGenerator = (cacheSpecs) => {
   };
 
   self.addEventListener('fetch', (e) => {
-    console.log('Service Worker Fetching...');
     e.respondWith(runStrategy(e));
   });
 };
