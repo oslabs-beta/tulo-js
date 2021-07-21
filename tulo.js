@@ -38,7 +38,7 @@ export const cacheGenerator = (cacheSpecs) => {
           body: JSON.stringify(metricsQueue),
         });
         
-        sentToServer = true;
+        if(res) sentToServer = true;
       } catch (err) {
         console.error('Sending to Server Failed', err);
         sentToServer = false;
@@ -96,9 +96,14 @@ export const cacheGenerator = (cacheSpecs) => {
   const getSpec = (request) => {
     for (const spec of cacheSpecs) {
       const types = spec.types;
-      for (let type of types) {
+      for (let type of types) { //match request first on type
         if (request.headers.get('Accept').includes(type)) {
-          return spec;
+          const urls = spec.urls;
+          for(let url of urls){ //if a matching type was found, match based on filename
+            if(request.url.includes(url)){
+              return spec;
+            }
+          }
         }
       }
     }
@@ -147,14 +152,16 @@ export const cacheGenerator = (cacheSpecs) => {
     const response = await fetch(request);
     const end = performance.now();
 
-    sendMetrics({
-      strategy: spec ? spec.strategy : 'NoStrategy',
-      url: request.url,
-      message: (comment ? comment : '') + ':Found in Network',
-      size: response.headers.get('content-length'),
-      loadtime: end - start,
-      timestamp: Date.now(),
-    });
+    if (spec) { //Send Metrics to tulo only if there is a matching cache spec
+      sendMetrics({
+        strategy: spec.strategy,
+        url: request.url,
+        message: (comment ? comment : '') + ':Found in Network',
+        size: response.headers.get('content-length'),
+        loadtime: end - start,
+        timestamp: Date.now(),
+      });
+    }
 
     return response;
   };
@@ -183,10 +190,9 @@ export const cacheGenerator = (cacheSpecs) => {
 
   const cacheFirst = async (e, spec) => {
     try {
-      return (
-        (await grabFromCache(e, spec)) ??
-        (await grabFromNetwork(e, spec, 'Not Found in Cache'))
-      );
+      const response =  (await grabFromCache(e, spec)) ?? (await grabFromNetwork(e, spec, 'Not Found in Cache'));
+      e.waitUntil(addToCache(e.request, response.clone(), spec.name));
+      return response;
     } catch (err) {
       return noMatch();
     }
@@ -223,7 +229,9 @@ export const cacheGenerator = (cacheSpecs) => {
       case 'NetworkOnly':
         return await networkOnly(e, spec);
       default:
-        console.error(`${strategy} for ${request.url} does not exist - sending to network`)
+        console.error(
+          `${strategy} for ${request.url} does not exist - sending to network`
+        );
         return await networkOnly(e);
     }
   };
