@@ -30,13 +30,14 @@ export const cacheGenerator = (cacheSpecs) => {
           metricsQueue.push(await response.json());
         }
         //sends to server
-        await fetch('https://tulojs.com/api/metrics', {
+        const res = await fetch('https://www.tulojs.com/api/metrics', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(metricsQueue),
         });
+        
         sentToServer = true;
       } catch (err) {
         console.error('Sending to Server Failed', err);
