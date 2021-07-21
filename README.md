@@ -105,5 +105,5 @@ Thanks for checking out our library! Please let us know of any feature requests 
 
 - Service Workers only work with HTTPS (localhost is an exception)
 - [web.dev](https://web.dev/) has many fantastic articles on service workers, caching, and more – check out the [overview on workers](https://web.dev/workers-overview/) to get started
-- [Workbox] is a robust library for service worker implementation if you are interested in diving deeper on caching possibilities (it served as an inspiration for making tulo.js as a lightweight library with monitoring insights)
+- [Workbox](https://developers.google.com/web/tools/workbox) is a robust library for service worker implementation if you are interested in diving deeper on caching possibilities (it served as an inspiration for making tulo.js as a lightweight library with monitoring insights)
 - [serviceworke.rs](https://serviceworke.rs/) is a great website with a cookbook for service workers if you want to get your hands dirty building from scratch
