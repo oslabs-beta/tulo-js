@@ -32,6 +32,12 @@ Thanks for checking out our library! Please let us know of any feature requests 
     import { cacheGenerator } from 'node_modules/tulo-js/tulo.js';
   ```
 
+  If you are having trouble importing tulo-js from node_modules, run the command below in your terminal from the root directory to copy the library functionality into your client-side code. To learn more about service worker imports, check out [Jeff Posnick's article on limitations of ES Module imports in service workers](https://web.dev/es-modules-in-sw/).
+  
+  ```js
+  cp ./node_modules/tulo-js/tulo.js ./public
+  ```
+
 5) Add a version number to `service-worker.js`. Remember to update this version number whenever you make updates to this file. This will ensure that a new service worker is installed then activated and your caches are automatically refreshed when you update your caching strategy.
   
   ```js
