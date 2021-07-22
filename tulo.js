@@ -1,6 +1,6 @@
 export const cacheGenerator = (cacheSpecs, batchSize) => {
   let expirations = {};
-  const METRICS_BATCH_SIZE = batchSize ?? 30;
+  const METRICS_BATCH_SIZE = batchSize ?? 10;
 
   //simple mutex
   let isLocked = false;
