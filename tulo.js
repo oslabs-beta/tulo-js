@@ -1,6 +1,6 @@
-export const cacheGenerator = (cacheSpecs) => {
+export const cacheGenerator = (cacheSpecs, batchSize) => {
   let expirations = {};
-  const METRICS_BATCH_SIZE = 30;
+  const METRICS_BATCH_SIZE = batchSize ?? 30;
 
   //simple mutex
   let isLocked = false;
@@ -38,7 +38,7 @@ export const cacheGenerator = (cacheSpecs) => {
           body: JSON.stringify(metricsQueue),
         });
         
-        console.log('');//console logging a empty character to avoid a strange issue when fetch seems to hang forever
+        console.log(res ? '' : '');//console logging a empty character to avoid a strange issue when fetch seems to hang forever
         sentToServer = true;
       } catch (err) {
         console.error('Sending to Server Failed', err);
